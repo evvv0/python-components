@@ -8,21 +8,57 @@
 #
 
 import logging
-
+import smbus
 from programmingtheiot.data.SensorData import SensorData
 
-class HumidityI2cSensorAdapterTask():
+
+class HumidityI2cSensorAdapterTask(BaseSensorSimTask):
 	"""
-	Shell representation of class for student implementation.
-	
-	"""
+    Clase adaptadora para leer datos del sensor de humedad a través de I2C.
+    """
 
 	def __init__(self):
-		pass
-	
+		# Inicializa la clase base con los valores de sensor
+		super(HumidityI2cSensorAdapterTask, self).__init__(typeID=SensorData.HUMIDITY_SENSOR_TYPE,
+														   minVal=SensorDataGenerator.LOW_NORMAL_ENV_HUMIDITY,
+														   maxVal=SensorDataGenerator.HI_NORMAL_ENV_HUMIDITY)
+
+		self.sensorType = SensorData.HUMIDITY_SENSOR_TYPE
+
+		# Dirección I2C para el sensor de humedad
+		self.humidAddr = 0x5F  # Dirección del sensor de humedad (por ejemplo, para SenseHAT)
+
+		# Inicializa el bus I2C en el Raspberry Pi (sólo bus 1)
+		self.i2cBus = smbus.SMBus(1)
+		self.i2cBus.write_byte_data(self.humidAddr, 0, 0)
+
 	def generateTelemetry(self) -> SensorData:
-		pass
-	
+		"""
+        Lee los valores del sensor de humedad a través de I2C y genera los datos del sensor.
+        """
+		try:
+			# Lee los datos del sensor (esto puede variar según el sensor)
+			humidityRaw = self.i2cBus.read_word_data(self.humidAddr, 0x01)
+
+			# Convierte los datos crudos en un valor de humedad (esto depende de tu sensor)
+			humidity = (humidityRaw / 100.0)  # Ajuste para convertir a porcentaje de humedad (ejemplo)
+
+			# Actualiza el sensor con los datos generados
+			self.sensorData = SensorData(sensorType=self.sensorType, value=humidity)
+
+			# Devuelve el objeto SensorData
+			return self.sensorData
+		except Exception as e:
+			logging.error("Error al generar telemetría de humedad: %s", e)
+			return None
+
 	def getTelemetryValue(self) -> float:
-		pass
-	
+		"""
+        Obtiene el valor de telemetría de humedad como un número flotante.
+        """
+		if self.sensorData:
+			return self.sensorData.value
+		else:
+			return 0.0  # Retorna un valor por defecto si no hay datos
+
+

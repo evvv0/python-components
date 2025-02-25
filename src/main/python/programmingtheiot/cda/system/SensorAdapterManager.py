@@ -17,7 +17,7 @@ import programmingtheiot.common.ConfigConst as ConfigConst
 
 from programmingtheiot.common.ConfigUtil import ConfigUtil
 from programmingtheiot.common.IDataMessageListener import IDataMessageListener
-
+from importlib import import_module
 from programmingtheiot.cda.sim.SensorDataGenerator import SensorDataGenerator
 from programmingtheiot.cda.sim.HumiditySensorSimTask import HumiditySensorSimTask
 from programmingtheiot.cda.sim.TemperatureSensorSimTask import TemperatureSensorSimTask
@@ -118,6 +118,21 @@ class SensorAdapterManager(object):
 			self.humidityAdapter = HumiditySensorSimTask(dataSet=humidityData)
 			self.pressureAdapter = PressureSensorSimTask(dataSet=pressureData)
 			self.tempAdapter = TemperatureSensorSimTask(dataSet=tempData)
+		else:
+			heModule = import_module('programmingtheiot.cda.emulated.HumiditySensorEmulatorTask',
+									 'HumiditySensorEmulatorTask')
+			heClazz = getattr(heModule, 'HumiditySensorEmulatorTask')
+			self.humidityAdapter = heClazz()
+
+			peModule = import_module('programmingtheiot.cda.emulated.PressureSensorEmulatorTask',
+									 'PressureSensorEmulatorTask')
+			peClazz = getattr(peModule, 'PressureSensorEmulatorTask')
+			self.pressureAdapter = peClazz()
+
+			teModule = import_module('programmingtheiot.cda.emulated.TemperatureSensorEmulatorTask',
+									 'TemperatureSensorEmulatorTask')
+			teClazz = getattr(teModule, 'TemperatureSensorEmulatorTask')
+			self.tempAdapter = teClazz()
 
 	def handleTelemetry(self):
 		humidityData = self.humidityAdapter.generateTelemetry()

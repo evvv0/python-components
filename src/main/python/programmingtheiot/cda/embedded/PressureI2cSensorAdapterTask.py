@@ -10,19 +10,29 @@
 import logging
 
 from programmingtheiot.data.SensorData import SensorData
+import smbus
 
-class PressureI2cSensorAdapterTask():
-	"""
-	Shell representation of class for student implementation.
-	
-	"""
-
+class PressureI2cSensorAdapterTask(BaseSensorSimTask):
 	def __init__(self):
-		pass
-	
+		super(PressureI2cSensorAdapterTask, self).__init__(typeID=SensorData.PRESSURE_SENSOR_TYPE,
+														   minVal=SensorDataGenerator.LOW_NORMAL_ENV_PRESSURE,
+														   maxVal=SensorDataGenerator.HI_NORMAL_ENV_PRESSURE)
+		self.sensorType = SensorData.PRESSURE_SENSOR_TYPE
+		self.pressureAddr = 0x60  # Dirección del sensor de presión (Ejemplo)
+		self.i2cBus = smbus.SMBus(1)
+		self.i2cBus.write_byte_data(self.pressureAddr, 0, 0)
+
 	def generateTelemetry(self) -> SensorData:
-		pass
-	
+		try:
+			pressureRaw = self.i2cBus.read_word_data(self.pressureAddr, 0x02)
+			pressure = (pressureRaw / 10.0)  # Conversión de datos a presión
+			self.sensorData = SensorData(sensorType=self.sensorType, value=pressure)
+			return self.sensorData
+		except Exception as e:
+			logging.error("Error al generar telemetría de presión: %s", e)
+			return None
+
 	def getTelemetryValue(self) -> float:
-		pass
-	
+		if self.sensorData:
+			return self.sensorData.value
+		return 0.0
