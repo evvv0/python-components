@@ -10,6 +10,8 @@
 import logging
 import smbus
 from programmingtheiot.data.SensorData import SensorData
+from programmingtheiot.cda.sim.BaseSensorSimTask import BaseSensorSimTask
+from programmingtheiot.cda.sim.SensorDataGenerator import SensorDataGenerator
 
 
 class HumidityI2cSensorAdapterTask(BaseSensorSimTask):

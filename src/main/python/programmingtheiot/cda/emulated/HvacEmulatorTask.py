@@ -33,6 +33,9 @@ class HvacEmulatorTask(BaseActuatorSimTask):
 
 
 	def _activateActuator(self, val: float = ConfigConst.DEFAULT_VAL, stateData: str = None) -> int:
+		if val is None:
+			val = 0.0  # Usar un valor predeterminado si val es None
+
 		if self.sh.screen:
 			msg = self.getSimpleName() + ' ON: ' + str(val) + 'C'
 			self.sh.screen.scroll_text(msg)
