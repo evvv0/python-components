@@ -38,6 +38,6 @@ class SensorData(BaseIotData):
 		self.updateTimeStamp()
 
 
-def _handleUpdateData(self, data):
-	if data and isinstance(data, SensorData):
-		self.value = data.getValue()
+	def _handleUpdateData(self, data):
+		if data and isinstance(data, SensorData):
+			self.value = data.getValue()
