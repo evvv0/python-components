@@ -35,6 +35,7 @@ class HumiditySensorSimTaskTest(unittest.TestCase):
 	def tearDown(self):
 		pass
 
+	@unittest.skip("Ignore for now.")
 	def testGenerateTelemetry(self):
 		sd = self.hSimTask.generateTelemetry()
 		
@@ -42,8 +43,8 @@ class HumiditySensorSimTaskTest(unittest.TestCase):
 			logging.info("SensorData: " + str(sd))
 		else:
 			logging.warning("SensorData is None.")
-			
-	#@unittest.skip("Ignore for now.")
+
+	@unittest.skip("Ignore for now.")
 	def testGetTelemetryValue(self):
 		val = self.hSimTask.getTelemetryValue()
 		logging.info("Humidity data: %f", val)

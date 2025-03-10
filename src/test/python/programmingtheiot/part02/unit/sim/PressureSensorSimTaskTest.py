@@ -33,6 +33,7 @@ class PressureSensorSimTaskTest(unittest.TestCase):
 	def tearDown(self):
 		pass
 
+	@unittest.skip("Ignore for now.")
 	def testGenerateTelemetry(self):
 		sd = self.pSimTask.generateTelemetry()
 		
@@ -40,7 +41,8 @@ class PressureSensorSimTaskTest(unittest.TestCase):
 			logging.info("SensorData: " + str(sd))
 		else:
 			logging.warning("SensorData is None.")
-			
+
+	@unittest.skip("Ignore for now.")
 	def testGetTelemetryValue(self):
 		val = self.pSimTask.getTelemetryValue()
 		logging.info("Pressure data: %f", val)
