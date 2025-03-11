@@ -28,43 +28,92 @@ class DataUtil():
 
 
 	def actuatorDataToJson(self, data: ActuatorData = None, useDecForFloat: bool = False):
-		if data:
-			return json.dumps(data, indent=4, cls=JsonDataEncoder)
-		return None
+		if not data:
+			logging.debug("ActuatorData is null. Returning empty string.")
+		return ""
+
+		jsonData = self._generateJsonData(obj=data, useDecForFloat=False)
+		return jsonData
 
 	def sensorDataToJson(self, data: SensorData = None, useDecForFloat: bool = False):
-		if data:
-			return json.dumps(data, indent=4, cls=JsonDataEncoder)
-		return None
+		if not data:
+			logging.debug("SensorData is null. Returning empty string.")
+		return ""
+
+		jsonData = self._generateJsonData(obj=data, useDecForFloat=False)
+		return jsonData
 
 	def systemPerformanceDataToJson(self, data: SystemPerformanceData = None, useDecForFloat: bool = False):
-		if data:
-			return json.dumps(data, indent=4, cls=JsonDataEncoder)
-		return None
+		if not data:
+			logging.debug("SystemPerformanceData is null. Returning empty string.")
+		return ""
 
-	def _jsonToObject(self, jsonData: str, objType):
+		jsonData = self._generateJsonData(obj=data, useDecForFloat=False)
+		return jsonData
+
+	def _generateJsonData(self, obj, useDecForFloat: bool = False)->str:
+		jsonData = None
+
+		if self.encodeToUtf8:
+			jsonData = json.dumps(obj, cls=JsonDataEncoder).encode('utf8')
+		else:
+			jsonData = json.dumps(obj, cls=JsonDataEncoder, indent=4)
+
 		if jsonData:
 			jsonData = jsonData.replace("\'", "\"").replace('False', 'false').replace('True', 'true')
-			jsonStruct = json.loads(jsonData)
 
-			obj = objType()
-			varStruct = vars(obj)
-
-			for key in jsonStruct:
-				if key in varStruct:
-					setattr(obj, key, jsonStruct[key])
-
-			return obj
-		return None
+		return jsonData
 
 	def jsonToActuatorData(self, jsonData: str = None, useDecForFloat: bool = False):
-		return self._jsonToObject(jsonData, ActuatorData)
+		if not jsonData:
+			logging.warning("JSON data is empty or null. Returning null.")
+			return None
+
+		jsonStruct = self._formatDataAndLoadDictionary(jsonData, useDecForFloat=useDecForFloat)
+		ad = ActuatorData()
+		self._updateIotData(jsonStruct, ad)
+		return ad
 
 	def jsonToSensorData(self, jsonData: str = None, useDecForFloat: bool = False):
-		return self._jsonToObject(jsonData, SensorData)
+		if not jsonData:
+			logging.warning("JSON data is empty or null. Returning null.")
+			return None
+
+		jsonStruct = self._formatDataAndLoadDictionary(jsonData, useDecForFloat=useDecForFloat)
+		se = SensorData()
+		self._updateIotData(jsonStruct, se)
+		return se
 
 	def jsonToSystemPerformanceData(self, jsonData: str = None, useDecForFloat: bool = False):
-		return self._jsonToObject(jsonData, SystemPerformanceData)
+		if not jsonData:
+			logging.warning("JSON data is empty or null. Returning null.")
+			return None
+		jsonStruct = self._formatDataAndLoadDictionary(jsonData, useDecForFloat=useDecForFloat)
+		sy = SystemPerformanceData()
+		self._updateIotData(jsonStruct, sy)
+		return sy
+
+	def _formatDataAndLoadDictionary(self, jsonData: str, useDecForFloat: bool = False) -> dict:
+		jsonData = jsonData.replace("\'", "\"").replace('False', 'false').replace('True', 'true')
+
+		jsonStruct = None
+
+		if useDecForFloat:
+			jsonStruct = json.loads(jsonData, parse_float=Decimal)
+		else:
+			jsonStruct = json.loads(jsonData)
+
+		return jsonStruct
+
+	def _updateIotData(self, jsonStruct, obj):
+		varStruct = vars(obj)
+
+		for key in jsonStruct:
+			if key in varStruct:
+				setattr(obj, key, jsonStruct[key])
+			else:
+				logging.warn("JSON data contains key not mappable to object: %s", key)
+
 
 
 class JsonDataEncoder(JSONEncoder):
