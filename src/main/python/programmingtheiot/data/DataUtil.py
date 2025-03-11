@@ -26,87 +26,45 @@ class DataUtil():
 		self.encodeToUtf8 = encodeToUtf8
 		logging.info("Created DataUtil instance.")
 
-	def actuatorDataToJson(self, data: ActuatorData = None, useDecForFloat: bool = False):
-		if not data:
-			logging.debug("ActuatorData is null. Returning empty string.")
-			return ""
 
-		jsonData = self._generateJsonData(obj=data, useDecForFloat=useDecForFloat)
-		return jsonData
+	def actuatorDataToJson(self, data: ActuatorData = None, useDecForFloat: bool = False):
+		if data:
+			return json.dumps(data, indent=4, cls=JsonDataEncoder)
+		return None
 
 	def sensorDataToJson(self, data: SensorData = None, useDecForFloat: bool = False):
-		if not data:
-			logging.debug("SensorData is null. Returning empty string.")
-			return ""
-
-		jsonData = self._generateJsonData(obj=data, useDecForFloat=useDecForFloat)
-		return jsonData
+		if data:
+			return json.dumps(data, indent=4, cls=JsonDataEncoder)
+		return None
 
 	def systemPerformanceDataToJson(self, data: SystemPerformanceData = None, useDecForFloat: bool = False):
-		if not data:
-			logging.debug("SystemPerformanceData is null. Returning empty string.")
-			return ""
+		if data:
+			return json.dumps(data, indent=4, cls=JsonDataEncoder)
+		return None
 
-		jsonData = self._generateJsonData(obj=data, useDecForFloat=useDecForFloat)
-		return jsonData
-
-	def jsonToActuatorData(self, jsonData: str = None, useDecForFloat: bool = False):
-		if not jsonData:
-			logging.warning("JSON data is empty or null. Returning null.")
-			return None
-
-		jsonStruct = self._formatDataAndLoadDictionary(jsonData, useDecForFloat=useDecForFloat)
-		ad = ActuatorData()
-		self._updateIotData(jsonStruct, ad)
-		return ad
-
-	def jsonToSensorData(self, jsonData: str = None, useDecForFloat: bool = False):
-		if not jsonData:
-			logging.warning("JSON data is empty or null. Returning null.")
-			return None
-
-		jsonStruct = self._formatDataAndLoadDictionary(jsonData, useDecForFloat=useDecForFloat)
-		sd = SensorData()
-		self._updateIotData(jsonStruct, sd)
-		return sd
-
-	def jsonToSystemPerformanceData(self, jsonData: str = None, useDecForFloat: bool = False):
-		if not jsonData:
-			logging.warning("JSON data is empty or null. Returning null.")
-			return None
-
-		jsonStruct = self._formatDataAndLoadDictionary(jsonData, useDecForFloat=useDecForFloat)
-		spd = SystemPerformanceData()
-		self._updateIotData(jsonStruct, spd)
-		return spd
-
-	def _formatDataAndLoadDictionary(self, jsonData: str, useDecForFloat: bool = False) -> dict:
-		jsonData = jsonData.replace("\'", "\"").replace('False', 'false').replace('True', 'true')
-
-		if useDecForFloat:
-			return json.loads(jsonData, parse_float=Decimal)
-		else:
-			return json.loads(jsonData)
-
-	def _generateJsonData(self, obj, useDecForFloat: bool = False) -> str:
-		if self.encodeToUtf8:
-			jsonData = json.dumps(obj, cls=JsonDataEncoder).encode('utf8')
-		else:
-			jsonData = json.dumps(obj, cls=JsonDataEncoder, indent=4)
-
+	def _jsonToObject(self, jsonData: str, objType):
 		if jsonData:
 			jsonData = jsonData.replace("\'", "\"").replace('False', 'false').replace('True', 'true')
+			jsonStruct = json.loads(jsonData)
 
-		return jsonData
+			obj = objType()
+			varStruct = vars(obj)
 
-	def _updateIotData(self, jsonStruct, obj):
-		varStruct = vars(obj)
+			for key in jsonStruct:
+				if key in varStruct:
+					setattr(obj, key, jsonStruct[key])
 
-		for key in jsonStruct:
-			if key in varStruct:
-				setattr(obj, key, jsonStruct[key])
-			else:
-				logging.warning("JSON data contains key not mappable to object: %s", key)
+			return obj
+		return None
+
+	def jsonToActuatorData(self, jsonData: str = None, useDecForFloat: bool = False):
+		return self._jsonToObject(jsonData, ActuatorData)
+
+	def jsonToSensorData(self, jsonData: str = None, useDecForFloat: bool = False):
+		return self._jsonToObject(jsonData, SensorData)
+
+	def jsonToSystemPerformanceData(self, jsonData: str = None, useDecForFloat: bool = False):
+		return self._jsonToObject(jsonData, SystemPerformanceData)
 
 
 class JsonDataEncoder(JSONEncoder):
