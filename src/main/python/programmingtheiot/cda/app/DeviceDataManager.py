@@ -47,6 +47,10 @@ class DeviceDataManager(IDataMessageListener):
 		self.enableSensing = self.configUtil.getBoolean(
 			section=ConfigConst.CONSTRAINED_DEVICE, key=ConfigConst.ENABLE_SENSING_KEY)
 
+		self.enableMqttClient = self.configUtil.getBoolean(
+			section=ConfigConst.CONSTRAINED_DEVICE, key=ConfigConst.ENABLE_MQTT_CLIENT_KEY
+		)
+
 		self.enableActuation = True
 
 		self.sysPerfMgr = None
@@ -80,6 +84,11 @@ class DeviceDataManager(IDataMessageListener):
 
 		self.triggerHvacTempCeiling = self.configUtil.getFloat(
 			ConfigConst.CONSTRAINED_DEVICE, ConfigConst.TRIGGER_HVAC_TEMP_CEILING_KEY)
+
+		# Si MQTT está habilitado, instanciamos el cliente MQTT
+		if self.enableMqttClient:
+			self.mqttClient = MqttClientConnector()
+			self.mqttClient.setDataMessageListener(self)  # Asumimos que DeviceDataManager maneja los mensajes
 		
 	def getLatestActuatorDataResponseFromCache(self, name: str = None) -> ActuatorData:
 		"""
@@ -213,6 +222,11 @@ class DeviceDataManager(IDataMessageListener):
 		if self.sensorAdapterMgr:
 			self.sensorAdapterMgr.startManager()
 
+		# Conectar el cliente MQTT si está habilitado
+		if self.mqttClient:
+			self.mqttClient.connectClient()
+			self.mqttClient.subscribeToTopic(ResourceNameEnum.CDA_ACTUATOR_CMD_RESOURCE, callback=None, qos=ConfigConst.DEFAULT_QOS)
+
 		logging.info("Started DeviceDataManager.")
 
 	def stopManager(self):
@@ -223,6 +237,11 @@ class DeviceDataManager(IDataMessageListener):
 
 		if self.sensorAdapterMgr:
 			self.sensorAdapterMgr.stopManager()
+
+		# Desconectar el cliente MQTT
+		if self.mqttClient:
+			self.mqttClient.unsubscribeFromTopic(ResourceNameEnum.CDA_ACTUATOR_CMD_RESOURCE)
+			self.mqttClient.disconnectClient()
 
 		logging.info("Stopped DeviceDataManager.")
 		
