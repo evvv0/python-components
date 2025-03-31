@@ -85,10 +85,10 @@ class DeviceDataManager(IDataMessageListener):
 		self.triggerHvacTempCeiling = self.configUtil.getFloat(
 			ConfigConst.CONSTRAINED_DEVICE, ConfigConst.TRIGGER_HVAC_TEMP_CEILING_KEY)
 
-		# Si MQTT está habilitado, instanciamos el cliente MQTT
+
 		if self.enableMqttClient:
 			self.mqttClient = MqttClientConnector()
-			self.mqttClient.setDataMessageListener(self)  # Asumimos que DeviceDataManager maneja los mensajes
+			self.mqttClient.setDataMessageListener(self)
 		
 	def getLatestActuatorDataResponseFromCache(self, name: str = None) -> ActuatorData:
 		"""

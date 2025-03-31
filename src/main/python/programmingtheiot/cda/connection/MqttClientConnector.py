@@ -56,11 +56,12 @@ class MqttClientConnector(IPubSubClient):
 
 
 		# El clientID puede ser proporcionado o leerlo de la configuración
-		if not clientID:
-			self.clientID = \
-				self.config.getProperty( ConfigConst.CONSTRAINED_DEVICE, ConfigConst.DEVICE_LOCATION_ID_KEY)
-
-		# TODO: Validar el clientID
+		if clientID:
+			self.clientID = clientID
+		else:
+			self.clientID = self.config.getProperty(
+				ConfigConst.CONSTRAINED_DEVICE, ConfigConst.DEVICE_LOCATION_ID_KEY
+			) or "DefaultMqttClient"  # Asigna un valor por defecto si la configuración no tiene uno
 
 		logging.info('\tMQTT Client ID:   ' + self.clientID)
 		logging.info('\tMQTT Broker Host: ' + self.host)
