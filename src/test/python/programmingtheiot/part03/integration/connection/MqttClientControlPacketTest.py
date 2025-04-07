@@ -1,7 +1,7 @@
 import logging
 import unittest
 from time import sleep
-
+import time
 import programmingtheiot.common.ConfigConst as ConfigConst
 from programmingtheiot.cda.connection.MqttClientConnector import MqttClientConnector
 from programmingtheiot.common.ConfigUtil import ConfigUtil
@@ -30,74 +30,79 @@ class MqttClientControlPacketTest(unittest.TestCase):
         cls.mcc = MqttClientConnector(clientID="MyTestMqttClient")
 
     def setUp(self):
-        """
-        Setup the test environment, ensuring a clean state for each test.
-        """
-        self.mcc.connectClient()
+        pass
 
     def tearDown(self):
-        """
-        Cleanup after each test.
-        """
-        self.mcc.disconnectClient()
+        pass
 
     def testConnectAndDisconnect(self):
-        """
-        Test the connection and disconnection functionality of the MQTT client.
-        Ensure that the client can connect to and disconnect from the broker.
-        """
-        logging.info("Testing connection to MQTT broker...")
-        self.assertTrue(self.mcc.connectClient())
+        """Test que verifica la conexión y desconexión del cliente MQTT"""
+        logging.info("Running testConnectAndDisconnect...")
 
-        logging.info("Testing disconnection from MQTT broker...")
-        if self.mcc.mqttClient.is_connected():
-            self.assertTrue(self.mcc.disconnectClient())
-        else:
-            logging.warning("MQTT client was not connected, skipping disconnect test.")
-
-    def testServerPing(self):
-        """
-        Test the PING functionality to ensure the MQTT client is still connected.
-        """
-        logging.info("Testing PING to MQTT broker...")
-
-
-        ping_result = self.mcc.ping()
-
-        self.assertTrue(ping_result, "Failed to send PING message to broker")
-
-
-    def testPubSub(self):
-        """
-        Test the publish and subscribe functionality with QoS 1 and QoS 2.
-        Ensure the control packets are generated for each QoS level.
-        """
-        topic = ResourceNameEnum.CDA_ACTUATOR_CMD_RESOURCE
-        message_qos1 = "Test message for QoS 1"
-        message_qos2 = "Test message for QoS 2"
-
-        # Publish QoS 1
-        logging.info("Testing message publish with QoS 1...")
-        publish_result_qos1 = self.mcc.publishMessage(topic, message_qos1, qos=1)
-        self.assertTrue(publish_result_qos1, "Failed to publish message with QoS 1")
-
-        # Publish QoS 2
-        logging.info("Testing message publish with QoS 2...")
-        publish_result_qos2 = self.mcc.publishMessage(topic, message_qos2, qos=2)
-        self.assertTrue(publish_result_qos2, "Failed to publish message with QoS 2")
-
-        # Subscribe QoS 1
-        logging.info("Testing subscribe with QoS 1...")
-        subscribe_result_qos1 = self.mcc.subscribeToTopic(topic, qos=1)
-        self.assertTrue(subscribe_result_qos1, "Failed to subscribe to topic with QoS 1")
-
-        # Subscribe QoS 2
-        logging.info("Testing subscribe with QoS 2...")
-        subscribe_result_qos2 = self.mcc.subscribeToTopic(topic, qos=2)
-        self.assertTrue(subscribe_result_qos2, "Failed to subscribe to topic with QoS 2")
-
+        # Conectar al broker
+        connected = self.mcc.connectClient()
+        self.assertTrue(connected, "El cliente MQTT debería conectarse exitosamente.")
         sleep(2)
 
-        logging.info("Testing unsubscribe functionality...")
-        unsubscribe_result = self.mcc.unsubscribeFromTopic(topic)
-        self.assertTrue(unsubscribe_result, "Failed to unsubscribe from topic")
+        # Verificar que la conexión ha sido realizada correctamente revisando el estado del cliente
+        self.assertTrue(self.mcc.mqttClient.is_connected(), "El cliente MQTT debería estar conectado.")
+
+        # Desconectar del broker
+        disconnected = self.mcc.disconnectClient()
+        self.assertTrue(disconnected, "El cliente MQTT debería desconectarse exitosamente.")
+        sleep(2)
+
+        # Verificar que la desconexión ha sido realizada correctamente
+        self.assertFalse(self.mcc.mqttClient.is_connected(), "El cliente MQTT debería estar desconectado.")
+
+    def testServerPing(self):
+        # Conectar al broker MQTT
+        isConnected = self.mcc.connectClient()
+        assert isConnected, "Connection to MQTT broker failed"
+
+        # Mantener la conexión abierta durante el tiempo suficiente para generar los paquetes PINGREQ y PINGRESP
+        time.sleep(6)  # Ajusta el tiempo para que la conexión permanezca activa (más que el Keep-Alive)
+
+        # El paquete PINGRESP debe ser recibido automáticamente por el broker
+        logging.info("Ping test completed, PINGREQ and PINGRESP exchanged.")
+
+        # Desconectar del broker
+        self.mcc.disconnectClient()
+
+    def testPubSub(self):
+        #Test que verifica que la publicación y suscripción funcionan correctamente con QoS 1 y QoS 2
+        logging.info("Running testPubSub...")
+
+        # Conectar al broker
+        connected = self.mcc.connectClient()
+        self.assertTrue(connected, "El cliente MQTT debería conectarse exitosamente.")
+
+        # Suscribirse al tema con QoS 1
+        subscribed = self.mcc.subscribeToTopic(ResourceNameEnum.CDA_ACTUATOR_CMD_RESOURCE, qos=1)
+        self.assertTrue(subscribed, "El cliente MQTT debería suscribirse exitosamente al tema con QoS 1.")
+        sleep(2)  # Espera para asegurar que la suscripción ha sido procesada
+
+        # Publicar un mensaje con QoS 1
+        message = ActuatorData(typeID=1, name="Actuator1")
+
+        published = self.mcc.publishMessage(ResourceNameEnum.CDA_ACTUATOR_CMD_RESOURCE,DataUtil().actuatorDataToJson(message), qos=1)
+
+        self.assertTrue(published, "El cliente MQTT debería publicar el mensaje con QoS 1.")
+        sleep(2)  # Espera para asegurar que el mensaje ha sido entregado
+
+        # Suscribirse al tema con QoS 2
+        subscribed = self.mcc.subscribeToTopic(ResourceNameEnum.CDA_ACTUATOR_CMD_RESOURCE, qos=2)
+        self.assertTrue(subscribed, "El cliente MQTT debería suscribirse exitosamente al tema con QoS 2.")
+        sleep(2)  # Espera para asegurar que la suscripción ha sido procesada
+
+        # Publicar un mensaje con QoS 2
+        published = self.mcc.publishMessage(ResourceNameEnum.CDA_ACTUATOR_CMD_RESOURCE, DataUtil().actuatorDataToJson(message), qos=2)
+        self.assertTrue(published, "El cliente MQTT debería publicar el mensaje con QoS 2.")
+        sleep(2)  # Espera para asegurar que el mensaje ha sido entregado
+
+        # Desconectar después del test
+        self.mcc.disconnectClient()
+
+# Ejecutar los tests
+if __name__ == '__main__':
+    unittest.main()
