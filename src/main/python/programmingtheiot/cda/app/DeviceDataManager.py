@@ -32,6 +32,9 @@ from programmingtheiot.data.ActuatorData import ActuatorData
 from programmingtheiot.data.SensorData import SensorData
 from programmingtheiot.data.SystemPerformanceData import SystemPerformanceData
 
+from programmingtheiot.cda.connection.CoapClientConnector import CoapClientConnector
+
+
 class DeviceDataManager(IDataMessageListener):
 	"""
 	Shell representation of class for student implementation.
@@ -48,8 +51,10 @@ class DeviceDataManager(IDataMessageListener):
 			section=ConfigConst.CONSTRAINED_DEVICE, key=ConfigConst.ENABLE_SENSING_KEY)
 
 		self.enableMqttClient = self.configUtil.getBoolean(
-			section=ConfigConst.CONSTRAINED_DEVICE, key=ConfigConst.ENABLE_MQTT_CLIENT_KEY
-		)
+			section=ConfigConst.CONSTRAINED_DEVICE, key=ConfigConst.ENABLE_MQTT_CLIENT_KEY)
+
+		self.enableCoapClient = self.configUtil.getBoolean(
+			section=ConfigConst.CONSTRAINED_DEVICE, key=ConfigConst.ENABLE_COAP_CLIENT_KEY)
 
 		self.enableActuation = True
 
@@ -89,6 +94,9 @@ class DeviceDataManager(IDataMessageListener):
 		if self.enableMqttClient:
 			self.mqttClient = MqttClientConnector()
 			self.mqttClient.setDataMessageListener(self)
+
+		if self.enableCoapClient:
+			self.coapClient = CoapClientConnector(dataMsgListener=self)
 		
 	def getLatestActuatorDataResponseFromCache(self, name: str = None) -> ActuatorData:
 		"""
