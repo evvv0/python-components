@@ -100,7 +100,6 @@ class CoapClientConnector(IRequestResponseClient):
 			self._onDeleteResponse(responseData)
 
 		except Exception as e:
-			# TODO: for debugging, you may want to optionally include the stack trace, as shown
 			logging.warning("Failed to process DELETE request for path: " + resourcePath)
 			traceback.print_exception(type(e), e, e.__traceback__)
 
@@ -215,7 +214,6 @@ class CoapClientConnector(IRequestResponseClient):
 			self._onPostResponse(responseData)
 
 		except Exception as e:
-			# TODO: for debugging, you may want to optionally include the stack trace, as shown
 			logging.warning("Failed to process POST request for path: " + resourcePath)
 			traceback.print_exception(type(e), e, e.__traceback__)
 
@@ -262,7 +260,6 @@ class CoapClientConnector(IRequestResponseClient):
 			self._onPutResponse(responseData)
 
 		except Exception as e:
-			# TODO: for debugging, you may want to optionally include the stack trace, as shown
 			logging.warning("Failed to process PUT request for path: " + resourcePath)
 			traceback.print_exception(type(e), e, e.__traceback__)
 
@@ -334,18 +331,15 @@ class CoapClientConnector(IRequestResponseClient):
 		try:
 			responseData = await req.response
 
-			# TODO: validate response first
 			self._onGetResponse(responseData)
 
 			async for responseData in req.observation:
-				# TODO: validate response first
 				self._onGetResponse(responseData)
 
 				req.observation.cancel()
 				break
 
 		except Exception as e:
-			# TODO: log warning and possibly stack trace, then be sure to stop observing...
 			logging.warning("Failed to execute OBSERVE - GET. Recovering...")
 			traceback.print_exception(type(e), e, e.__traceback__)
 
