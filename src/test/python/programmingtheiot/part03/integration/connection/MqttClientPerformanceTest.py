@@ -33,15 +33,15 @@ class MqttClientConnectorTest(unittest.TestCase):
 	@classmethod
 	def setUpClass(self):
 		logging.basicConfig(format = '%(asctime)s:%(module)s:%(levelname)s:%(message)s', level = logging.DEBUG)
-		
+
 	def setUp(self):
-		self.mqttClient = MqttClientConnector(clientID = 'CDAMqttClientPerformanceTest001')
-		pass
+		unique_client_id = f"CDAMqttClientPerformanceTest_{int(time.time() * 1000)}"
+		self.mqttClient = MqttClientConnector(clientID=unique_client_id)
 
 	def tearDown(self):
 		pass
 
-	@unittest.skip("Ignore for now.")
+	#@unittest.skip("Ignore for now.")
 	def testConnectAndDisconnect(self):
 		startTime = time.time_ns()
 		
@@ -53,19 +53,20 @@ class MqttClientConnectorTest(unittest.TestCase):
 		
 		logging.info("Connect and Disconnect: " + str(elapsedMillis) + " ms")
 		
-	@unittest.skip("Ignore for now.")
+	#@unittest.skip("Ignore for now.")
 	def testPublishQoS0(self):
 		self._execTestPublish(self.MAX_TEST_RUNS, 0)
 
-	@unittest.skip("Ignore for now.")
+	#@unittest.skip("Ignore for now.")
 	def testPublishQoS1(self):
 		self._execTestPublish(self.MAX_TEST_RUNS, 1)
 
-	@unittest.skip("Ignore for now.")
+	#@unittest.skip("Ignore for now.")
 	def testPublishQoS2(self):
 		self._execTestPublish(self.MAX_TEST_RUNS, 2)
 
 	def _execTestPublish(self, maxTestRuns: int, qos: int):
+		logging.info(f"Running test with maxTestRuns={maxTestRuns} and QoS={qos}")
 		self.assertTrue(self.mqttClient.connectClient())
 		
 		sensorData = SensorData()

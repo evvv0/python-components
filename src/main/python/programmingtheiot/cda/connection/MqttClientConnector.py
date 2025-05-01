@@ -99,7 +99,7 @@ class MqttClientConnector(IPubSubClient):
 		else:
 			logging.warning('MQTT client already disconnected. Ignoring.')
 
-			return False
+			return True
 		
 	def onConnect(self, client, userdata, flags, rc):
 		logging.info('MQTT client connected to broker: ' + str(client))
@@ -116,8 +116,9 @@ class MqttClientConnector(IPubSubClient):
 			logging.info('MQTT message received with no payload: ' + str(msg))
 			
 	def onPublish(self, client, userdata, mid):
-		logging.info('MQTT message published: ' + str(client))
-	
+		#logging.info('MQTT message published: ' + str(client))
+		pass
+
 	def onSubscribe(self, client, userdata, mid, granted_qos):
 		logging.info('MQTT client subscribed: ' + str(client))
 	
@@ -140,12 +141,12 @@ class MqttClientConnector(IPubSubClient):
 					   qos: int = ConfigConst.DEFAULT_QOS) -> bool:
 		# check validity of resource (topic)
 		if not resource:
-			logging.warning('No topic specified. Cannot publish message.')
+			#logging.warning('No topic specified. Cannot publish message.')
 			return False
 
 		# check validity of message
 		if not msg:
-			logging.warning('No message specified. Cannot publish message to topic: ' + resource.value)
+			#logging.warning('No message specified. Cannot publish message to topic: ' + resource.value)
 			return False
 
 		# check validity of QoS - set to default if necessary
