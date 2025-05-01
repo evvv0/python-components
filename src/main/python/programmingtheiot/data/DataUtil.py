@@ -25,10 +25,21 @@ class DataUtil():
 	def __init__(self, encodeToUtf8=False):
 		self.encodeToUtf8 = encodeToUtf8
 		logging.info("Created DataUtil instance.")
+		self.logger = logging.getLogger(__name__)
+		self.logger.setLevel(logging.DEBUG)
 
 	def actuatorDataToJson(self, data: ActuatorData = None, useDecForFloat: bool = False):
 		if data:
-			return json.dumps(data, indent=4, cls=JsonDataEncoder)
+			# Log de antes de convertir a JSON
+			self.logger.debug(f"Encoding ActuatorData to JSON [pre]  --> {data}")
+
+			# Realizar la conversión a JSON
+			jsonData = json.dumps(data, indent=4, cls=JsonDataEncoder)
+
+			# Log de después de convertir a JSON
+			self.logger.info(f"Encoding ActuatorData to JSON [post] -->\n{jsonData}")
+
+			return jsonData
 		return None
 
 	def sensorDataToJson(self, data: SensorData = None, useDecForFloat: bool = False):

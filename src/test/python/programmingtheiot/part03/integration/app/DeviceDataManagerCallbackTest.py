@@ -16,8 +16,9 @@ import programmingtheiot.common.ConfigConst as ConfigConst
 
 from programmingtheiot.cda.app.DeviceDataManager import DeviceDataManager
 from programmingtheiot.data.ActuatorData import ActuatorData
+from programmingtheiot.data.DataUtil import DataUtil
 
-class DeviceDataManagerWithCommsTest(unittest.TestCase):
+class DeviceDataManagerCallbackTest(unittest.TestCase):
 	"""
 	This test case class contains very basic integration tests for
 	DeviceDataManager. It should not be considered complete,
@@ -56,7 +57,10 @@ class DeviceDataManagerWithCommsTest(unittest.TestCase):
 		actuatorData.setCommand(ConfigConst.COMMAND_ON)
 		actuatorData.setStateData("This is a test.")
 		actuatorData.setValue(52)
-		
+
+		dataUtil = DataUtil()
+		jsonStr = dataUtil.actuatorDataToJson(actuatorData)
+
 		ddMgr.handleActuatorCommandMessage(actuatorData)
 		
 		sleep(10)

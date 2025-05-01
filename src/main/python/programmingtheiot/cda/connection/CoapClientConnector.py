@@ -213,7 +213,7 @@ class CoapClientConnector(IRequestResponseClient):
 			else:
 				resourcePath = name  # ya es una URI completa
 
-			logging.info("Issuing Async POST to path: " + resourcePath)
+			#logging.info("Issuing Async POST to path: " + resourcePath)
 
 			asyncio.get_event_loop().run_until_complete(
 				self._handlePostRequest(
@@ -253,7 +253,7 @@ class CoapClientConnector(IRequestResponseClient):
 			logging.warning('POST response invalid. Ignoring.')
 			return
 
-		logging.info('POST response received: %s', response.payload)
+		#logging.info('POST response received: %s', response.payload)
 
 	def sendPutRequest(self, resource: ResourceNameEnum = None, name: str = None, enableCON: bool = False,
 					   payload: str = None, timeout: int = IRequestResponseClient.DEFAULT_TIMEOUT) -> bool:
@@ -265,7 +265,7 @@ class CoapClientConnector(IRequestResponseClient):
 			else:
 				resourcePath = name  # ya es una URI completa, como 'coap://localhost:5683/...'
 
-			logging.info("Issuing Async PUT to path: " + resourcePath)
+			#logging.info("Issuing Async PUT to path: " + resourcePath)
 
 			try:
 				asyncio.get_event_loop().run_until_complete(
@@ -314,7 +314,7 @@ class CoapClientConnector(IRequestResponseClient):
 
 		try:
 			responseText = response.payload.decode('utf-8')
-			logging.info('PUT response received: %s', responseText)
+			#logging.info('PUT response received: %s', responseText)
 		except Exception as e:
 			logging.warning('Failed to decode PUT response.')
 			traceback.print_exception(type(e), e, e.__traceback__)

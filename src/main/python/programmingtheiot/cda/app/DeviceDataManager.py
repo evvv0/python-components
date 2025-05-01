@@ -193,6 +193,8 @@ class DeviceDataManager(IDataMessageListener):
 		if data:
 			logging.debug("Incoming sensor data received (from sensor manager): " + str(data))
 			self._handleSensorDataAnalysis(data)
+			jsonData = DataUtil().sensorDataToJson(data=data)
+			self._handleUpstreamTransmission(resource=ResourceNameEnum.CDA_SENSOR_MSG_RESOURCE, msg=jsonData)
 			return True
 
 		else:
@@ -210,6 +212,8 @@ class DeviceDataManager(IDataMessageListener):
 		"""
 		if data:
 			logging.debug("Incoming system performance message received (from sys perf manager): " + str(data))
+			jsonData = DataUtil().systemPerformanceDataToJson(data=data)
+			self._handleUpstreamTransmission(resource=ResourceNameEnum.CDA_SYSTEM_PERFORMANCE_MSG_RESOURCE, msg=jsonData)
 			return True
 		else:
 			logging.warning("Incoming system performance data is invalid (null). Ignoring.")
@@ -270,28 +274,40 @@ class DeviceDataManager(IDataMessageListener):
 		1) Check config: Is there a rule or flag that requires immediate processing of data?
 		2) Act on data: If # 1 is true, determine what - if any - action is required, and execute.
 		"""
-		if self.handleTempChangeOnDevice and data.getTypeID() == ConfigConst.TEMP_SENSOR_TYPE:
-			logging.info("Handle temp change: %s - type ID: %s", str(self.handleTempChangeOnDevice),
-						 str(data.getTypeID()))
+		if data is not None:
+			# Comprobación adicional para asegurarse de que data tenga el tipo de sensor esperado
+			if self.handleTempChangeOnDevice and data.getTypeID() == ConfigConst.TEMP_SENSOR_TYPE:
+				logging.info("Handle temp change: %s - type ID: %s", str(self.handleTempChangeOnDevice),
+							 str(data.getTypeID()))
 
-			ad = ActuatorData(typeID=ConfigConst.HVAC_ACTUATOR_TYPE)
+				ad = ActuatorData(typeID=ConfigConst.HVAC_ACTUATOR_TYPE)
 
-			if data.getValue() > self.triggerHvacTempCeiling:
-				ad.setCommand(ConfigConst.COMMAND_ON)
-				ad.setValue(self.triggerHvacTempCeiling)
-			elif data.getValue() < self.triggerHvacTempFloor:
-				ad.setCommand(ConfigConst.COMMAND_ON)
-				ad.setValue(self.triggerHvacTempFloor)
+				if data.getValue() > self.triggerHvacTempCeiling:
+					ad.setCommand(ConfigConst.COMMAND_ON)
+					ad.setValue(self.triggerHvacTempCeiling)
+				elif data.getValue() < self.triggerHvacTempFloor:
+					ad.setCommand(ConfigConst.COMMAND_ON)
+					ad.setValue(self.triggerHvacTempFloor)
+				else:
+					ad.setCommand(ConfigConst.COMMAND_OFF)
+
+				self.handleActuatorCommandMessage(ad)
+		else:
+			logging.warning("Received sensor data is None. Skipping processing.")
+	def _handleUpstreamTransmission(self, resource: ResourceNameEnum, msg: str):
+		logging.info("Upstream transmission invoked. Checking comm's integration.")
+
+		# Si usamos MQTT
+		if self.mqttClient:
+			if self.mqttClient.publishMessage(resource=resource, msg=msg):
+				logging.debug("Published incoming data to resource (MQTT): %s", str(resource))
 			else:
-				ad.setCommand(ConfigConst.COMMAND_OFF)
+				logging.warning("Failed to publish incoming data to resource (MQTT): %s", str(resource))
 
-			self.handleActuatorCommandMessage(ad)
-		
-	def _handleUpstreamTransmission(self, resourceName: ResourceNameEnum, msg: str):
-		"""
-		Call this from handleActuatorCommandResponse(), handlesensorMessage(), and handleSystemPerformanceMessage()
-		to determine if the message should be sent upstream. Steps to take:
-		1) Check connection: Is there a client connection configured (and valid) to a remote MQTT or CoAP server?
-		2) Act on msg: If # 1 is true, send message upstream using one (or both) client connections.
-		"""
-		pass
+		# Si usamos CoAP
+		if self.coapClient:
+			if self.coapClient.sendPutRequest(resource=resource, payload=msg):
+				logging.debug("Put incoming message data to resource (CoAP): %s", str(resource))
+			else:
+				logging.warning("Failed to put incoming message data to resource (CoAP): %s", str(resource))
+

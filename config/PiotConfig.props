@@ -19,7 +19,7 @@ securePort     = 8883
 defaultQoS     = 0
 keepAlive      = 60
 enableAuth     = False
-enableCrypt    = True
+enableCrypt    = False
 
 #
 # CoAP client configuration information
@@ -40,9 +40,9 @@ enableCrypt    = False
 deviceLocationID = constraineddevice001
 enableEmulator   = True
 enableSenseHAT   = True
-enableMqttClient = True
+enableMqttClient = False
 enableCoapServer = False
-enableCoapClient = True
+enableCoapClient = False
 enableSystemPerformance = True
 enableSensing    = True
 enableLogging    = True
