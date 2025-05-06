@@ -192,7 +192,7 @@ class DeviceDataManager(IDataMessageListener):
 		"""
 		if data:
 			logging.debug("Incoming sensor data received (from sensor manager): " + str(data))
-			self._handleSensorDataAnalysis(data)
+			self._handleSensorDataAnalysis(data=data)
 			jsonData = DataUtil().sensorDataToJson(data=data)
 			self._handleUpstreamTransmission(resource=ResourceNameEnum.CDA_SENSOR_MSG_RESOURCE, msg=jsonData)
 			return True
@@ -213,7 +213,7 @@ class DeviceDataManager(IDataMessageListener):
 		if data:
 			logging.debug("Incoming system performance message received (from sys perf manager): " + str(data))
 			jsonData = DataUtil().systemPerformanceDataToJson(data=data)
-			self._handleUpstreamTransmission(resource=ResourceNameEnum.CDA_SYSTEM_PERFORMANCE_MSG_RESOURCE, msg=jsonData)
+			self._handleUpstreamTransmission(resource=ResourceNameEnum.CDA_SYSTEM_PERF_MSG_RESOURCE, msg=jsonData)
 			return True
 		else:
 			logging.warning("Incoming system performance data is invalid (null). Ignoring.")
@@ -285,15 +285,18 @@ class DeviceDataManager(IDataMessageListener):
 				if data.getValue() > self.triggerHvacTempCeiling:
 					ad.setCommand(ConfigConst.COMMAND_ON)
 					ad.setValue(self.triggerHvacTempCeiling)
+					ad.setStateData("Temp muy alta: activando enfriamiento")
 				elif data.getValue() < self.triggerHvacTempFloor:
 					ad.setCommand(ConfigConst.COMMAND_ON)
 					ad.setValue(self.triggerHvacTempFloor)
+					ad.setStateData("Temp muy baja: activando calefacción")
 				else:
 					ad.setCommand(ConfigConst.COMMAND_OFF)
 
 				self.handleActuatorCommandMessage(ad)
 		else:
 			logging.warning("Received sensor data is None. Skipping processing.")
+
 	def _handleUpstreamTransmission(self, resource: ResourceNameEnum, msg: str):
 		logging.info("Upstream transmission invoked. Checking comm's integration.")
 
