@@ -42,6 +42,20 @@ Lastly, here are some 'dot' ('.{filename}') files pertaining to dev environment 
 
 NOTE: The directory structure and all files are subject to change based on feedback I receive from readers of my book and students in my IoT class, as well as improvements I find to be helpful for overall repo betterment.
 
+# MQTT Client Performance Results
+
+Se hizo una prueba para ver cuánto tarda el cliente MQTT en conectarse y desconectarse del broker, y el tiempo fue de unos 32.54 milisegundos. Después, se probaron tres niveles de calidad de servicio (QoS) enviando 10,000 mensajes de 264 bytes cada uno. Con QoS 0, que es el más rápido, tardó 0.677 segundos. Con QoS 1, el tiempo subió a 1.310 segundos, lo que es casi el doble (+93.5%). Finalmente, con QoS 2, que es el más confiable pero también el más lento, tardó 1.624 segundos, o sea, un 139.9% más que QoS 0. En resumen, cuanto mayor es el nivel de QoS, más tarda en enviar los mensajes.
+
+# CDA CoAP Client Performance Test Results
+
+Testing POST - CON
+POST message - useCON = True [10000]: 10207.891786 ms. Payload Len: 264
+
+Testing POST - NON
+POST message - useCON = False [10000]: 8244.030923 ms. Payload Len: 264
+
+ El test con mensajes CON tardó aproximadamente 10.21 segundos, mientras que el test con NON fue más rápido, tomando unos 8.24 segundos. Eso significa que el uso de mensajes confirmables fue un 23.84% más lento que el de mensajes no confirmables. En resumen, NON fue más rápido y CON más lento, pero con más fiabilidad en la entrega.
+
 # Other things to know
 
 ## Pull requests
